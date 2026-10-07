@@ -11,14 +11,30 @@ use Symfony\Component\Console\Output\OutputInterface;
 trait InteractsWithNode
 {
     /**
-     * Repos/<site>/Sites on the host
+     * The site's application code, relative to Repos/ (and to /opt/repos in
+     * the container) - <site>/<IDE_APP_DIR>, which the IDE sets (deploy by
+     * default, `.` for the repository root). Falls back to deploy on an IDE
+     * that predates it.
+     *
+     * @param string $site
+     * @return string
+     */
+    protected function siteApp(string $site): string
+    {
+        $app = trim((string) (getenv('IDE_APP_DIR') ?: 'deploy'), '/');
+
+        return $app === '.' || $app === '' ? $site : "{$site}/{$app}";
+    }
+
+    /**
+     * The site's application code on the host
      *
      * @param string $site
      * @return string
      */
     protected function sitePath(string $site): string
     {
-        return (getenv('IDE_ROOT') ?: getcwd()) . "/Repos/{$site}/Sites";
+        return (getenv('IDE_ROOT') ?: getcwd()) . '/Repos/' . $this->siteApp($site);
     }
 
     /**
@@ -35,9 +51,9 @@ trait InteractsWithNode
     }
 
     /**
-     * Runs `npm <arguments>` for Repos/<site>/Sites (mounted at
-     * /opt/repos/<site>/Sites), echoing the command first like the core
-     * commands do
+     * Runs `npm <arguments>` for the site's application code (mounted at
+     * /opt/repos/<site>/<IDE_APP_DIR>), echoing the command first like the
+     * core commands do
      *
      * @param OutputInterface $output
      * @param string $site
@@ -46,7 +62,7 @@ trait InteractsWithNode
      */
     protected function npm(OutputInterface $output, string $site, array $arguments): int
     {
-        $command = 'docker compose run --rm node npm --prefix ' . escapeshellarg("{$site}/Sites")
+        $command = 'docker compose run --rm node npm --prefix ' . escapeshellarg($this->siteApp($site))
             . ' ' . implode(' ', array_map('escapeshellarg', $arguments));
 
         $output->writeLn($command);
