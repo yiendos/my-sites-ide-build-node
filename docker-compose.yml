@@ -1,0 +1,19 @@
+services:
+    node:
+        container_name: "node"
+        # the name the image had in the IDE, so an existing one keeps working
+        image: ${NAMESPACE}_frontend:latest
+        build:
+            context: .
+            dockerfile: Dockerfile
+        environment:
+            # storage/plugins/node/ on the host (storage: true in composer.json) - the
+            # container is run with --rm, so npm's cache would otherwise go with it every time
+            npm_config_cache: /storage/npm-cache
+        volumes:
+            - '${IDE_ROOT}/Repos:/opt/repos'
+            # for sites whose package.json points at a local package in Packages/
+            - '${IDE_ROOT}/Packages:/opt/Packages'
+
+    # not started by `ide:spark` (autostart: false) - it's a tool, each build:node-* command
+    # runs it once with `docker compose run --rm node`

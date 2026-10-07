@@ -1,0 +1,32 @@
+{
+    "name": "yiendos/my-sites-ide-build-node",
+    "description": "Node and npm in a container - installs your sites' JavaScript dependencies and builds their assets without Node on the host - for my-sites-ide",
+    "type": "my-sites-ide-plugin",
+    "license": "MIT",
+    "keywords": ["my-sites-ide", "node", "npm", "vite", "assets"],
+    "authors": [
+        {
+            "name": "Paul Yiend",
+            "email": "yiendos@sbmatrix.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Yiendos\\MySitesIde\\Build\\Node\\": "src/"
+        }
+    },
+    "require": {
+        "php": "^8.2",
+        "symfony/console": "^7.3"
+    },
+    "extra": {
+        "my-sites-ide": {
+            "commands": "src/Console",
+            "compose": "docker-compose.yml",
+            "services": ["node"],
+            "autostart": false,
+            "storage": true,
+            "hooks": { "site-assets": ["build:node-assets"] }
+        }
+    }
+}
