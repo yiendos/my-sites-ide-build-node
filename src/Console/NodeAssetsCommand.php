@@ -22,7 +22,7 @@ class NodeAssetsCommand extends Command
     {
         $this
             ->setName('build:node-assets')
-            ->setDescription("Install a site's npm dependencies and build its assets (Repos/<site>/Sites)")
+            ->setDescription("Install a site's npm dependencies and build its assets (Repos/<site>/<IDE_APP_DIR>)")
             ->addArgument('site', InputArgument::REQUIRED, 'Which site, as in Repos/<site>')
         ;
     }
@@ -46,7 +46,7 @@ class NodeAssetsCommand extends Command
         $package = $this->packageJson($site);
 
         if ($package === null) {
-            $io->warning("Repos/{$site}/Sites/package.json doesn't exist - no assets to build.");
+            $io->warning('Repos/' . $this->siteApp($site) . "/package.json doesn't exist - no assets to build.");
             return Command::SUCCESS;
         }
 

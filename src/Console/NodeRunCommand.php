@@ -39,7 +39,7 @@ class NodeRunCommand extends Command
         $site = $input->getArgument('site');
 
         if (!is_dir($this->sitePath($site))) {
-            $io->error("Repos/{$site}/Sites doesn't exist.");
+            $io->error('Repos/' . $this->siteApp($site) . " doesn't exist - is IDE_APP_DIR right for this site?");
             return Command::FAILURE;
         }
 

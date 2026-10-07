@@ -55,8 +55,8 @@ existing image keeps working.
 
 ```
 host (my-sites-ide CLI)
-  |- build:node-assets <site>          --> docker compose run --rm node npm --prefix <site>/Sites install, then run build|prod
-  |- build:node-run <site> -- ...      --> docker compose run --rm node npm --prefix <site>/Sites ...
+  |- build:node-assets <site>          --> docker compose run --rm node npm --prefix <site>/<IDE_APP_DIR> install, then run build|prod
+  |- build:node-run <site> -- ...      --> docker compose run --rm node npm --prefix <site>/<IDE_APP_DIR> ...
   |- ide:repo-clone --laravel          --> site-dependencies hook (composer plugin), then
                                            site-assets hook --> build:node-assets <site>
 
@@ -72,10 +72,10 @@ The image is the official `node:lts-alpine` image, unchanged. It runs as root, a
 
 | Command | What it does |
 |---|---|
-| `build:node-assets <site>` | `npm install` in `Repos/<site>/Sites`, then the build: `npm run prod` for a Laravel Mix site with a `prod` script, otherwise `npm run build` (or `prod` if that's the only one). Skips a site with no `package.json`, and warns when there's no build script |
-| `build:node-run <site> -- <arguments>` | Any npm command in `Repos/<site>/Sites`, e.g. `build:node-run example -- run build` or `build:node-run example -- install -D tailwindcss`. Put npm's arguments after `--`, or the CLI takes their options as its own |
+| `build:node-assets <site>` | `npm install` in `Repos/<site>/<IDE_APP_DIR>`, then the build: `npm run prod` for a Laravel Mix site with a `prod` script, otherwise `npm run build` (or `prod` if that's the only one). Skips a site with no `package.json`, and warns when there's no build script |
+| `build:node-run <site> -- <arguments>` | Any npm command in `Repos/<site>/<IDE_APP_DIR>`, e.g. `build:node-run example -- run build` or `build:node-run example -- install -D tailwindcss`. Put npm's arguments after `--`, or the CLI takes their options as its own |
 
-There's nothing to configure - the plugin has no `.env` settings.
+There's nothing of its own to configure. It works in each site's application folder, `Repos/<site>/<IDE_APP_DIR>` - an IDE setting in the root `.env`, `deploy` by default (`Sites` for the older layout, `.` for the repository root).
 
 ## What it uses from the IDE
 
@@ -83,6 +83,7 @@ There's nothing to configure - the plugin has no `.env` settings.
 |---|---|
 | `NAMESPACE` (root `.env`) | the image name, `${NAMESPACE}_frontend` |
 | `IDE_ROOT` (set by the CLI and `_dev/cache/ide.env`) | the `Repos/` and `Packages/` mounts, finding `Repos/<site>` |
+| `IDE_APP_DIR` (root `.env`, set by the CLI - `deploy` if it isn't) | which folder in `Repos/<site>/` holds the app - where npm runs |
 | `storage/plugins/node/` (`"storage": true`) | npm's cache, mounted at `/storage` |
 | the `site-assets` hook | building on `ide:repo-clone --laravel`, after the `site-dependencies` hook |
 
@@ -97,7 +98,7 @@ site's composer dependencies aren't installed. Install them first:
 `composer update`, or `php my-sites-ide ide:plugin-discover`.
 
 **Files in `node_modules/` or `public/build/` are owned by root** (Linux hosts). The container runs
-as root (see Known gaps). `sudo chown -R $USER Repos/<site>/Sites` fixes them.
+as root (see Known gaps). `sudo chown -R $USER Repos/<site>/<IDE_APP_DIR>` fixes them.
 
 ## Known gaps
 
